@@ -5,7 +5,13 @@
 package Reto_tres.Servicios;
 
 import Reto_tres.Modelo.Reservacion;
+import Reto_tres.Repositorio.ContadorClientes;
 import Reto_tres.Repositorio.ReservacionRepositorio;
+import Reto_tres.Repositorio.statusReservas;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +27,28 @@ public class ServiciosReservacion {
     @Autowired
     private ReservacionRepositorio metodosCrud;
 
+    /**
+     *
+     * @return
+     */
     public List<Reservacion> getAll() {
         return metodosCrud.getAll();
     }
 
+    /**
+     *
+     * @param reservationId
+     * @return
+     */
     public Optional<Reservacion> getReservation(int reservationId) {
         return metodosCrud.getReservation(reservationId);
     }
 
+    /**
+     *
+     * @param reservation
+     * @return
+     */
     public Reservacion save(Reservacion reservation) {
         if (reservation.getIdReservation() == null) {
             return metodosCrud.save(reservation);
@@ -42,6 +62,11 @@ public class ServiciosReservacion {
         }
     }
 
+    /**
+     *
+     * @param reservacion
+     * @return
+     */
     public Reservacion update(Reservacion reservacion) {
         if (reservacion.getIdReservation() != null) {
             Optional<Reservacion> e = metodosCrud.getReservation(reservacion.getIdReservation());
@@ -66,6 +91,10 @@ public class ServiciosReservacion {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean deleteReservation(int reservationId) {
         Boolean aBoolean = getReservation(reservationId).map(reservation -> {
             metodosCrud.delete(reservation);
@@ -73,4 +102,37 @@ public class ServiciosReservacion {
         }).orElse(false);
         return aBoolean;
     }
+    
+    
+    public statusReservas reporteStatusServicio (){
+        List<Reservacion>completed= metodosCrud.ReservacionStatusRepositorio("completed");
+        List<Reservacion>cancelled= metodosCrud.ReservacionStatusRepositorio("cancelled");
+        
+        return new statusReservas(completed.size(), cancelled.size() );
+    }
+
+    public List<Reservacion> reporteTiempoServicio (String datoA, String datoB){
+        SimpleDateFormat parser = new SimpleDateFormat ("yyyy-MM-dd");
+        
+        Date datoUno = new Date();
+        Date datoDos = new Date();
+        
+        try{
+             datoUno = parser.parse(datoA);
+             datoDos = parser.parse(datoB);
+        }catch(ParseException evt){
+            evt.printStackTrace();
+        }if(datoUno.before(datoDos)){
+            return metodosCrud.ReservacionTiempoRepositorio(datoUno, datoDos);
+        }else{
+            return new ArrayList<>();
+        
+        } 
+    }
+
+    public List<ContadorClientes> reporteClientesServicio(){
+            return metodosCrud.getClientesRepositorio();
+        }
+
+
 }
